@@ -3,25 +3,28 @@ package com.astayc.infraction.Service.Impl;
 import com.astayc.infraction.DTO.ReservationDTO;
 import com.astayc.infraction.Entity.Event;
 import com.astayc.infraction.Entity.Reservation;
-import com.astayc.infraction.Mapper.EventMapper;
 import com.astayc.infraction.Repository.EventRepository;
 import com.astayc.infraction.Repository.ReservationRepository;
 import com.astayc.infraction.Service.ReservationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @Service
-
 public class ReservationServiceImpl implements ReservationService {
 
-    @Autowired
-    private  EventRepository eventRepository;
+    private final EventRepository eventRepository;
+    private final ReservationRepository reservationRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private  ReservationRepository reservationRepository;
+    public ReservationServiceImpl(EventRepository eventRepository,
+                                  ReservationRepository reservationRepository,
+                                  ModelMapper modelMapper) {
+        this.eventRepository = eventRepository;
+        this.reservationRepository = reservationRepository;
+        this.modelMapper = modelMapper;
+    }
 
-    private final EventMapper eventMapper = EventMapper.INSTANCE;
 
     @Override
     public ReservationDTO createReservation(ReservationDTO reservationDTO) {
@@ -42,15 +45,18 @@ public class ReservationServiceImpl implements ReservationService {
             throw new RuntimeException("You are already registered for this event");
         }
 
-        // Create reservation
-        Reservation reservation = eventMapper.reservationDTOToReservation(reservationDTO);
+        // Map DTO to Reservation entity
+        Reservation reservation = modelMapper.map(reservationDTO, Reservation.class);
         reservation.setEvent(event);
+
+        // Update event capacity
         event.setCurrentCapacity(event.getCurrentCapacity() + 1);
 
-        // Save reservation and update event
+        // Save reservation and event
         reservationRepository.save(reservation);
         eventRepository.save(event);
 
-        return eventMapper.reservationToReservationDTO(reservation);
+        // Map back to DTO
+        return modelMapper.map(reservation, ReservationDTO.class);
     }
 }
