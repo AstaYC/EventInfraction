@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ReservationDTO {
-    private Long eventId; // Event the reservation is for
-    private String email; // Customer's email
+    private Long eventId;
+    private String email;
 }

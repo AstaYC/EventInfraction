@@ -6,29 +6,32 @@ import com.astayc.infraction.Mapper.EventMapper;
 import com.astayc.infraction.Repository.EventRepository;
 import com.astayc.infraction.Service.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
-    private final EventRepository eventRepository;
-    private final EventMapper eventMapper = EventMapper.INSTANCE;
+    @Autowired
+    private  EventRepository eventRepository;
+
+    @Autowired
+    private  EventMapper eventMapper = EventMapper.INSTANCE;
 
     @Override
     public EventDTO createEvent(EventDTO eventDTO) {
         Event event = eventMapper.eventDTOToEvent(eventDTO);
-        event.setCurrentCapacity(0); // Initialize capacity
+        event.setCurrentCapacity(0);
         return eventMapper.eventToEventDTO(eventRepository.save(event));
     }
 
     @Override
     public EventDTO getEventById(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found")); // Custom exception recommended
+                .orElseThrow(() -> new RuntimeException("Event not found"));
         return eventMapper.eventToEventDTO(event);
     }
 

@@ -8,14 +8,19 @@ import com.astayc.infraction.Repository.EventRepository;
 import com.astayc.infraction.Repository.ReservationRepository;
 import com.astayc.infraction.Service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+
 public class ReservationServiceImpl implements ReservationService {
 
-    private final EventRepository eventRepository;
-    private final ReservationRepository reservationRepository;
+    @Autowired
+    private  EventRepository eventRepository;
+
+    @Autowired
+    private  ReservationRepository reservationRepository;
+
     private final EventMapper eventMapper = EventMapper.INSTANCE;
 
     @Override

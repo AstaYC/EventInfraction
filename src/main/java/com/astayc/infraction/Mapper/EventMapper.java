@@ -18,3 +18,4 @@ public interface EventMapper {
     ReservationDTO reservationToReservationDTO(Reservation reservation);
     Reservation reservationDTOToReservation(ReservationDTO reservationDTO);
 }
+    
