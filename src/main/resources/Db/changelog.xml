@@ -22,4 +22,26 @@
             <column name="current_capacity" type="INT" defaultValueNumeric="0"/>
         </createTable>
     </changeSet>
+
+    <changeSet id="2" author="astaYc">
+        <createTable tableName="reservation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Key Constraint for event_id -->
+        <addForeignKeyConstraint
+                baseTableName="reservation"
+                baseColumnNames="event_id"
+                referencedTableName="event"
+                referencedColumnNames="id"
+                constraintName="fk_reservation_event"/>
+    </changeSet>
 </databaseChangeLog>
