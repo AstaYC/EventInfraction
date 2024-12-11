@@ -24,11 +24,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDTO createEvent(EventDTO eventDTO) {
-        // Map DTO to Event entity
         Event event = modelMapper.map(eventDTO, Event.class);
         event.setCurrentCapacity(0);
 
-        // Save and map back to DTO
         return modelMapper.map(eventRepository.save(event), EventDTO.class);
     }
 
@@ -37,13 +35,11 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Map to DTO
         return modelMapper.map(event, EventDTO.class);
     }
 
     @Override
     public List<EventDTO> getAllEvents() {
-        // Map each Event to EventDTO
         return eventRepository.findAll()
                 .stream()
                 .map(event -> modelMapper.map(event, EventDTO.class))

@@ -8,7 +8,11 @@ import com.astayc.infraction.Repository.ReservationRepository;
 import com.astayc.infraction.Service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -25,19 +29,15 @@ public class ReservationServiceImpl implements ReservationService {
         this.modelMapper = modelMapper;
     }
 
-
     @Override
     public ReservationDTO createReservation(ReservationDTO reservationDTO) {
-        // Fetch the event
         Event event = eventRepository.findById(reservationDTO.getEventId())
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Check capacity
         if (event.getCurrentCapacity() >= event.getMaxCapacity()) {
             throw new RuntimeException("Event is full");
         }
 
-        // Check duplicate reservation
         boolean exists = reservationRepository
                 .findByEventIdAndEmail(event.getId(), reservationDTO.getEmail())
                 .isPresent();
@@ -45,18 +45,14 @@ public class ReservationServiceImpl implements ReservationService {
             throw new RuntimeException("You are already registered for this event");
         }
 
-        // Map DTO to Reservation entity
         Reservation reservation = modelMapper.map(reservationDTO, Reservation.class);
         reservation.setEvent(event);
 
-        // Update event capacity
         event.setCurrentCapacity(event.getCurrentCapacity() + 1);
 
-        // Save reservation and event
         reservationRepository.save(reservation);
         eventRepository.save(event);
 
-        // Map back to DTO
         return modelMapper.map(reservation, ReservationDTO.class);
     }
 }
