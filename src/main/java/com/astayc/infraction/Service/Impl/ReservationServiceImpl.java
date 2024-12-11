@@ -3,18 +3,18 @@ package com.astayc.infraction.Service.Impl;
 import com.astayc.infraction.DTO.ReservationDTO;
 import com.astayc.infraction.Entity.Event;
 import com.astayc.infraction.Entity.Reservation;
+import com.astayc.infraction.Exception.ResourceNotFoundException;
 import com.astayc.infraction.Repository.EventRepository;
 import com.astayc.infraction.Repository.ReservationRepository;
 import com.astayc.infraction.Service.ReservationService;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.modelmapper.internal.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
+
 public class ReservationServiceImpl implements ReservationService {
 
     private final EventRepository eventRepository;
@@ -32,17 +32,21 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public ReservationDTO createReservation(ReservationDTO reservationDTO) {
         Event event = eventRepository.findById(reservationDTO.getEventId())
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + reservationDTO.getEventId()));
 
-        if (event.getCurrentCapacity() >= event.getMaxCapacity()) {
-            throw new RuntimeException("Event is full");
+        if(event.getCurrentCapacity() >= event.getMaxCapacity()){
+            throw new IllegalArgumentException("the event is full up");
         }
 
-        boolean exists = reservationRepository
-                .findByEventIdAndEmail(event.getId(), reservationDTO.getEmail())
-                .isPresent();
-        if (exists) {
-            throw new RuntimeException("You are already registered for this event");
+        boolean exist2 = reservationRepository.findByEventIdAndEmail(event.getId(), reservationDTO.getEmail()).isPresent();
+        if (exist2){
+            throw new IllegalArgumentException("the reservation already exists");
+        }
+
+        LocalDate date = LocalDate.now();
+
+        if(event.getDate().isAfter(date)){
+            throw new IllegalArgumentException("the time is over for this event");
         }
 
         Reservation reservation = modelMapper.map(reservationDTO, Reservation.class);
@@ -55,4 +59,6 @@ public class ReservationServiceImpl implements ReservationService {
 
         return modelMapper.map(reservation, ReservationDTO.class);
     }
+
+
 }

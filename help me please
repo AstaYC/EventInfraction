@@ -1,0 +1,23 @@
+    public ReservationDTO createReservation(ReservationDTO reservationDTO) {
+        Event event = eventRepository.findById(reservationDTO.getEventId())
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + reservationDTO.getEventId()));
+
+        if(event.getCurrentCapacity() >= event.getMaxCapacity()){
+            throw new IllegalArgumentException("the event is full up");
+        }
+
+        boolean exist2 = reservationRepository.findByEventIdAndEmail(event.getId(), reservationDTO.getEmail()).isPresent();
+        if (exist2){
+            throw new IllegalArgumentException("the reservation already exists");
+        }
+
+        Reservation reservation = modelMapper.map(reservationDTO, Reservation.class);
+        reservation.setEvent(event);
+
+        event.setCurrentCapacity(event.getCurrentCapacity() + 1);
+
+        reservationRepository.save(reservation);
+        eventRepository.save(event);
+
+        return modelMapper.map(reservation, ReservationDTO.class);
+    }
